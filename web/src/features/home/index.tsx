@@ -20,7 +20,6 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PublicLayout } from '@/components/layout'
-import { Footer } from '@/components/layout/components/footer'
 import { RichContent } from '@/components/rich-content'
 import { useTheme } from '@/context/theme-provider'
 import { isLikelyHtml } from '@/lib/content-format'
@@ -123,10 +122,26 @@ export function Home() {
   }
 
   return (
-    <div className='gateway-home dark'>
-      <PublicLayout showMainContainer={false} showThemeSwitch={false}>
+    <div className='cloud-home'>
+      <PublicLayout
+        showMainContainer={false}
+        showThemeSwitch={false}
+        showNotifications={false}
+        headerProps={{
+          showLanguageSwitcher: false,
+          brand: (
+            <img
+              src='/yunsuguan-logo.png'
+              alt={t('Yunsuguan')}
+              width={180}
+              height={53}
+              fetchPriority='high'
+              className='cloud-brand-logo'
+            />
+          ),
+        }}
+      >
         <GatewayLanding isAuthenticated={isAuthenticated} />
-        <Footer />
       </PublicLayout>
     </div>
   )

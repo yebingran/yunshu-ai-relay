@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
@@ -46,6 +46,7 @@ type AuthPromptTarget = {
 }
 
 export interface PublicHeaderProps {
+  brand?: ReactNode
   navLinks?: TopNavLink[]
   mobileLinks?: TopNavLink[]
   navContent?: React.ReactNode
@@ -76,6 +77,7 @@ export function PublicHeader(props: PublicHeaderProps) {
 
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const mobileNavId = useId()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [authPromptTarget, setAuthPromptTarget] =
@@ -202,13 +204,13 @@ export function PublicHeader(props: PublicHeaderProps) {
       <header className='pointer-events-none fixed inset-x-0 top-0 z-50'>
         <div
           className={cn(
-            'pointer-events-auto mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            'pointer-events-auto mx-auto transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
             scrolled ? 'max-w-[52rem] px-3 pt-3' : 'max-w-7xl px-4 pt-0 md:px-6'
           )}
         >
           <nav
             className={cn(
-              'flex items-center justify-between gap-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+              'flex items-center justify-between gap-2 transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
               scrolled
                 ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
                 : 'h-16 px-2'
@@ -220,19 +222,23 @@ export function PublicHeader(props: PublicHeaderProps) {
                 to={homeUrl}
                 className='group flex min-w-0 items-center gap-2.5'
               >
-                <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
-                  {logoContent}
-                </div>
-                <span
-                  className='max-w-48 truncate text-sm font-semibold tracking-tight'
-                  title={displaySiteName}
-                >
-                  {loading ? (
-                    <Skeleton className='h-4 w-16' />
-                  ) : (
-                    displaySiteName
-                  )}
-                </span>
+                {props.brand ?? (
+                  <>
+                    <div className='flex size-7 shrink-0 items-center justify-center transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-300 group-hover:scale-105'>
+                      {logoContent}
+                    </div>
+                    <span
+                      className='max-w-48 truncate text-sm font-semibold tracking-tight'
+                      title={displaySiteName}
+                    >
+                      {loading ? (
+                        <Skeleton className='h-4 w-16' />
+                      ) : (
+                        displaySiteName
+                      )}
+                    </span>
+                  </>
+                )}
               </Link>
               <SystemUpdateAction presentation='version' />
             </div>
@@ -323,23 +329,25 @@ export function PublicHeader(props: PublicHeaderProps) {
                 className='size-9'
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label={t('Toggle navigation menu')}
+                aria-expanded={mobileOpen}
+                aria-controls={mobileNavId}
               >
                 <div className='relative size-4'>
                   <span
                     className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-300',
                       mobileOpen ? 'top-[7px] rotate-45' : 'top-[3px]'
                     )}
                   />
                   <span
                     className={cn(
-                      'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-all duration-300',
+                      'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-300',
                       mobileOpen ? 'scale-x-0 opacity-0' : 'opacity-100'
                     )}
                   />
                   <span
                     className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-300',
                       mobileOpen ? 'top-[7px] -rotate-45' : 'top-[11px]'
                     )}
                   />
@@ -352,8 +360,11 @@ export function PublicHeader(props: PublicHeaderProps) {
 
       {/* Mobile full-screen overlay */}
       <div
+        id={mobileNavId}
+        aria-hidden={!mobileOpen}
+        inert={!mobileOpen}
         className={cn(
-          'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:pointer-events-none lg:hidden',
+          'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:pointer-events-none lg:hidden',
           mobileOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
@@ -364,7 +375,7 @@ export function PublicHeader(props: PublicHeaderProps) {
             {links.map((link, i) => {
               const isActive = pathname === link.href
               const linkClassName = cn(
-                'flex items-center gap-3 py-3 text-base font-medium tracking-tight transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                'flex items-center gap-3 py-3 text-base font-medium tracking-tight transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
                 mobileOpen
                   ? 'translate-y-0 opacity-100'
                   : 'translate-y-4 opacity-0',
@@ -408,7 +419,7 @@ export function PublicHeader(props: PublicHeaderProps) {
 
           <div
             className={cn(
-              'flex flex-col gap-3 transition-all duration-500',
+              'flex flex-col gap-3 transition-[background-color,border-color,box-shadow,transform,opacity,max-width,padding] duration-500',
               mobileOpen
                 ? 'translate-y-0 opacity-100'
                 : 'translate-y-4 opacity-0'

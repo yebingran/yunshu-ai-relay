@@ -51,26 +51,28 @@ describe('Gateway landing actions', () => {
   it('sends visitors to registration and preserves access to model pricing', async () => {
     await renderLanding(false)
     for (const link of screen.getAllByRole('link', {
-      name: /Start building/,
+      name: /Create an account/,
     })) {
       expect(link).toHaveAttribute('href', '/sign-up')
     }
     expect(
-      screen.getByRole('link', { name: /Explore models/ })
+      screen.getAllByRole('link', { name: /Explore models/ })[0]
     ).toHaveAttribute('href', '/pricing')
     expect(
-      screen.getByRole('link', { name: /Discover what you can build/ })
-    ).toHaveAttribute('href', '#gateway-models')
+      screen.getByRole('link', { name: 'Skip to main content' })
+    ).toHaveAttribute('href', '#cloud-main')
   })
 
   it('sends signed-in users directly to the dashboard', async () => {
     await renderLanding(true)
     expect(
-      screen.getByRole('link', { name: /Go to Dashboard/ })
+      screen.getAllByRole('link', { name: /Go to Dashboard/ })[0]
     ).toHaveAttribute('href', '/dashboard')
-    expect(
-      screen.getByRole('link', { name: /Start building/ })
-    ).toHaveAttribute('href', '/dashboard')
+    for (const link of screen.getAllByRole('link', {
+      name: /Go to Dashboard/,
+    })) {
+      expect(link).toHaveAttribute('href', '/dashboard')
+    }
   })
 
   it('copies the displayed quickstart using the keyboard', async () => {
@@ -90,8 +92,56 @@ describe('Gateway landing actions', () => {
     await i18next.changeLanguage('zh')
     await renderLanding(false)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      '万千模型，一站连接。'
+      '让 AI 融入你的日常工作。'
     )
     expect(screen.getByRole('button', { name: '复制接入示例' })).toBeVisible()
+  })
+  it('filters model families with keyboard-accessible tabs and restores the full list', async () => {
+    const user = userEvent.setup()
+    await renderLanding(false)
+    const all = screen.getByRole('tab', { name: 'All models' })
+    all.focus()
+    await user.keyboard('{ArrowRight}{Enter}')
+    expect(screen.getByRole('tab', { name: 'Text' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    expect(
+      screen.queryByRole('heading', { name: /GPT OpenAI/ })
+    ).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /DeepSeek/ })
+    ).toBeVisible()
+    await user.keyboard('{ArrowRight}{Enter}')
+    expect(screen.getByRole('tab', { name: 'Multimodal' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+    expect(
+      await screen.findByRole('heading', { name: /GPT OpenAI/ })
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('heading', { name: /DeepSeek/ })
+    ).not.toBeInTheDocument()
+    await user.click(all)
+    expect(
+      await screen.findByRole('heading', { name: /GPT OpenAI/ })
+    ).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { name: /DeepSeek/ })
+    ).toBeVisible()
+  })
+
+  it('uses Yunsuguan branding and confines the required upstream attribution to the footer', async () => {
+    await renderLanding(false)
+    expect(screen.getAllByText('An AI platform by Yunsuguan')).toHaveLength(3)
+    expect(screen.getByRole('main')).not.toHaveTextContent(/New API/i)
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(
+      'Frontend design and development by New API contributors.'
+    )
+    expect(screen.getByRole('img', { name: 'Yunsuguan' })).toHaveAttribute(
+      'src',
+      '/yunsuguan-logo.png'
+    )
   })
 })

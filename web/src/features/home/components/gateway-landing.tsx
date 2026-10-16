@@ -17,50 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Link } from '@tanstack/react-router'
-import {
-  ArrowDown,
-  ArrowRight,
-  Braces,
-  Check,
-  Code2,
-  Globe2,
-  Layers3,
-  Route,
-  ShieldCheck,
-  Sparkles,
-  Terminal,
-  Zap,
-} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
 import { Button } from '@/components/ui/button'
 
-const providers = [
-  'OpenAI',
-  'Anthropic',
-  'Google Gemini',
-  'DeepSeek',
-  'Qwen',
-  'Azure AI',
-]
-const capabilities = [
-  {
-    icon: Route,
-    title: 'One endpoint. More possibilities.',
-    text: 'Connect your providers through one consistent API. Switch models without rebuilding your application.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Your access. Your rules.',
-    text: 'Keep model access, API keys and team permissions together in your own workspace.',
-  },
-  {
-    icon: Layers3,
-    title: 'Every request, in focus.',
-    text: 'Understand usage and costs with a unified console built for everyday operations.',
-  },
-]
+import { ModelDirectory } from './model-directory'
+
 const code = `from openai import OpenAI
 
 client = OpenAI(
@@ -70,9 +33,7 @@ client = OpenAI(
 
 response = client.chat.completions.create(
     model="YOUR_MODEL",
-    messages=[
-        {"role": "user", "content": "Hello, New API!"}
-    ]
+    messages=[{"role": "user", "content": "Hello!"}]
 )
 
 print(response.choices[0].message.content)`
@@ -80,42 +41,33 @@ print(response.choices[0].message.content)`
 export function GatewayLanding(props: { isAuthenticated: boolean }) {
   const { t } = useTranslation()
   return (
-    <main className='gateway-main'>
-      <section className='gateway-hero' aria-labelledby='gateway-title'>
-        <div className='gateway-orbit' aria-hidden='true'>
-          <div />
-          <div />
-          <div />
-        </div>
-        <div className='gateway-container gateway-hero-grid'>
-          <div className='gateway-intro'>
-            <a
-              className='gateway-announcement'
-              href='https://github.com/QuantumNous/new-api'
-              target='_blank'
-              rel='noreferrer'
-            >
-              <span className='gateway-dot' />
-              {t('Open source. Open possibilities.')}
-              <ArrowRight size={14} aria-hidden='true' />
-            </a>
-            <p className='gateway-eyebrow'>
-              {t('THE GATEWAY TO INTELLIGENCE')}
+    <>
+      <a href='#cloud-main' className='cloud-skip'>
+        {t('Skip to main content')}
+      </a>
+      <main id='cloud-main' tabIndex={-1} className='cloud-main'>
+        <section
+          className='cloud-hero cloud-container'
+          aria-labelledby='cloud-title'
+        >
+          <div className='cloud-intro'>
+            <p className='cloud-affiliation'>
+              {t('An AI platform by Yunsuguan')}
             </p>
-            <h1 id='gateway-title'>
-              {t('All your AI.')}
+            <h1 id='cloud-title'>
+              {t('AI that fits')}
               <br />
-              <span>{t('One beautiful API.')}</span>
+              {t('the way you work.')}
             </h1>
-            <p className='gateway-description'>
+            <p className='cloud-description'>
               {t(
-                'Bring the world’s AI models into one workspace. Build, connect and create with a gateway that puts you in control.'
+                'Connect models, manage access and understand costs. Yunsuguan brings your AI services into one place, so your team can get on with the work.'
               )}
             </p>
-            <div className='gateway-actions'>
+            <div className='cloud-actions'>
               <Button
                 role='link'
-                className='gateway-primary'
+                className='cloud-primary'
                 size='lg'
                 render={
                   <Link
@@ -125,227 +77,178 @@ export function GatewayLanding(props: { isAuthenticated: boolean }) {
               >
                 {props.isAuthenticated
                   ? t('Go to Dashboard')
-                  : t('Start building')}
-                <ArrowRight aria-hidden='true' />
+                  : t('Create an account')}
               </Button>
               <Button
                 role='link'
-                className='gateway-secondary'
-                variant='outline'
+                className='cloud-secondary'
                 size='lg'
+                variant='outline'
                 render={<Link to='/pricing' />}
               >
                 {t('Explore models')}
-                <Braces aria-hidden='true' />
               </Button>
             </div>
-            <div className='gateway-promises'>
-              <span>
-                <Check size={14} aria-hidden='true' />
-                {t('Self-hosted')}
-              </span>
-              <span>
-                <Check size={14} aria-hidden='true' />
-                {t('OpenAI compatible')}
-              </span>
-              <span>
-                <Check size={14} aria-hidden='true' />
-                {t('Built for your team')}
-              </span>
+            <div className='cloud-hero-footnote'>
+              <span>API</span>
+              <p>{t('Use the OpenAI SDK you already know.')}</p>
             </div>
           </div>
-          <div
-            className='gateway-visual'
-            aria-label={t('API routing illustration')}
-          >
-            <div className='gateway-window'>
-              <div className='gateway-window-bar'>
-                <div className='gateway-window-dots'>
-                  <i />
-                  <i />
-                  <i />
-                </div>
-                <span>new-api / gateway</span>
-                <span className='gateway-preview-label'>
-                  {t('Illustration')}
-                </span>
-              </div>
-              <div className='gateway-window-content'>
-                <div className='gateway-request'>
-                  <span>
-                    <Terminal size={16} aria-hidden='true' />
-                    {t('Your next big idea')}
-                  </span>
-                  <code>POST /v1/chat/completions</code>
-                </div>
-                <div className='gateway-flow-line' aria-hidden='true' />
-                <div className='gateway-hub'>
-                  <div className='gateway-hub-icon'>
-                    <Zap size={26} fill='currentColor' aria-hidden='true' />
-                  </div>
-                  <div>
-                    <strong>New API</strong>
-                    <span>{t('One unified gateway')}</span>
-                  </div>
-                  <span className='gateway-hub-spark'>✳</span>
-                </div>
-                <div className='gateway-branches' aria-hidden='true'>
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <div className='gateway-model-nodes'>
-                  <div>
-                    <Sparkles aria-hidden='true' />
-                    <strong>OpenAI</strong>
-                    <small>Chat / Responses</small>
-                  </div>
-                  <div>
-                    <span className='gateway-claude-mark' aria-hidden='true'>
-                      ✳
-                    </span>
-                    <strong>Anthropic</strong>
-                    <small>Messages</small>
-                  </div>
-                  <div>
-                    <Globe2 aria-hidden='true' />
-                    <strong>Gemini</strong>
-                    <small>Generate Content</small>
-                  </div>
-                </div>
-                <div className='gateway-payload'>
-                  <span className='gateway-dot' />
-                  <code>{'{ "possibilities": "endless" }'}</code>
-                  <Check size={15} aria-hidden='true' />
-                </div>
-              </div>
-            </div>
-            <div className='gateway-float'>
-              <div>
-                <Code2 size={18} aria-hidden='true' />
-              </div>
-              <span>
-                {t('Less integration.')}
-                <strong>{t('More creation.')}</strong>
-              </span>
-              <ArrowRight size={18} aria-hidden='true' />
-            </div>
-          </div>
-        </div>
-        <a href='#gateway-models' className='gateway-scroll'>
-          {t('Discover what you can build')}
-          <ArrowDown size={14} aria-hidden='true' />
-        </a>
-      </section>
-      <section
-        id='gateway-models'
-        className='gateway-provider-section gateway-container'
-        aria-labelledby='providers-heading'
-      >
-        <p id='providers-heading' className='gateway-eyebrow'>
-          {t('ONE CONNECTION. A WORLD OF MODELS.')}
-        </p>
-        <div className='gateway-providers'>
-          {providers.map((provider) => (
-            <span key={provider}>{provider}</span>
-          ))}
-        </div>
-        <p className='gateway-provider-note'>
-          {t(
-            'Connect supported providers with your own authorized upstream access. Model availability depends on your configuration.'
-          )}
-        </p>
-      </section>
-      <section
-        className='gateway-container gateway-features'
-        aria-labelledby='features-heading'
-      >
-        <div className='gateway-section-heading'>
-          <p className='gateway-eyebrow'>{t('BUILT FOR THE WAY YOU BUILD')}</p>
-          <h2 id='features-heading'>
-            {t('Less complexity.')} <span>{t('More possibility.')}</span>
-          </h2>
-          <p>{t('A thoughtful foundation for your next AI application.')}</p>
-        </div>
-        <div className='gateway-feature-grid'>
-          {capabilities.map((item, index) => (
-            <article className='gateway-feature-card' key={item.title}>
-              <span className='gateway-feature-number'>0{index + 1}</span>
-              <item.icon size={24} aria-hidden='true' />
-              <h3>{t(item.title)}</h3>
-              <p>{t(item.text)}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <section
-        className='gateway-container gateway-developer'
-        aria-labelledby='developer-heading'
-      >
-        <div>
-          <p className='gateway-eyebrow'>
-            {t('FAMILIAR CODE. NEW POSSIBILITIES.')}
-          </p>
-          <h2 id='developer-heading'>
-            {t('Your stack.')}
-            <br />
-            <span>{t('Already connected.')}</span>
-          </h2>
-          <p>
-            {t(
-              'Keep the SDK you already know. Set your gateway URL, choose a configured model, and make your first request.'
-            )}
-          </p>
-          <a
-            className='gateway-text-link'
-            href='https://docs.newapi.ai/'
-            target='_blank'
-            rel='noreferrer'
-          >
-            {t('Read the documentation')}
-            <ArrowRight size={16} aria-hidden='true' />
-          </a>
-          <div className='gateway-sdk-tags'>
-            <span>Python</span>
-            <span>Node.js</span>
-            <span>cURL</span>
-            <span>OpenAI SDK</span>
-          </div>
-        </div>
-        <div className='gateway-code'>
-          <div className='gateway-code-header'>
-            <span>
-              <span className='gateway-dot' />
-              quickstart.py
-            </span>
-            <CopyButton value={code} aria-label={t('Copy quickstart code')} />
-          </div>
-          <pre>
-            <code>{code}</code>
-          </pre>
-          <div className='gateway-code-footer'>
-            <Terminal size={14} aria-hidden='true' />
-            {t('Replace the placeholders with your gateway settings.')}
-          </div>
-        </div>
-      </section>
-      <section className='gateway-container gateway-bottom-cta'>
-        <Sparkles size={24} aria-hidden='true' />
-        <p className='gateway-eyebrow'>{t('YOUR NEXT CHAPTER STARTS HERE')}</p>
-        <h2>{t('Make room for your next big idea.')}</h2>
-        <p>{t('One gateway between inspiration and what comes next.')}</p>
-        <Button
-          role='link'
-          className='gateway-primary'
-          size='lg'
-          render={
-            <Link to={props.isAuthenticated ? '/dashboard' : '/sign-up'} />
-          }
+          <ModelDirectory />
+        </section>
+        <section
+          className='cloud-service-band'
+          aria-label={t('Platform services')}
         >
-          {t('Start building')}
-          <ArrowRight aria-hidden='true' />
-        </Button>
-      </section>
-    </main>
+          <div className='cloud-container cloud-services'>
+            <p>{t('From one model to your whole team.')}</p>
+            <ul>
+              <li>{t('Model access')}</li>
+              <li>{t('Team permissions')}</li>
+              <li>{t('Usage and costs')}</li>
+            </ul>
+          </div>
+        </section>
+        <section
+          className='cloud-container cloud-workspace'
+          aria-labelledby='workspace-title'
+        >
+          <div className='cloud-section-heading'>
+            <h2 id='workspace-title'>{t('A place for the everyday work.')}</h2>
+            <p>{t('Choose what you need. Manage it in one console.')}</p>
+          </div>
+          <div className='cloud-workspace-grid'>
+            <div className='cloud-workspace-note'>
+              <p>{t('For developers and the teams behind them.')}</p>
+              <a
+                href='https://www.yunsuguan.com/'
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                {t('Visit Yunsuguan')}
+              </a>
+            </div>
+            <dl className='cloud-service-list'>
+              <div>
+                <dt>{t('Model access')}</dt>
+                <dd>
+                  {t(
+                    'Connect authorized providers and switch between configured models through a consistent interface.'
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('Team permissions')}</dt>
+                <dd>
+                  {t(
+                    'Organize API keys, groups and access permissions around how your team works.'
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('Usage and costs')}</dt>
+                <dd>
+                  {t(
+                    'Review request logs and usage together, with costs that are easier to follow.'
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+        <section
+          className='cloud-developer-section'
+          aria-labelledby='developer-heading'
+        >
+          <div className='cloud-container cloud-developer'>
+            <div>
+              <h2 id='developer-heading'>
+                {t('Keep your SDK.')}
+                <br />
+                {t('Connect your workspace.')}
+              </h2>
+              <p>
+                {t(
+                  'Set your gateway URL and API key, choose a configured model, and send your first request.'
+                )}
+              </p>
+              <a
+                href='https://docs.newapi.ai/'
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                {t('Read the documentation')}
+              </a>
+              <p className='cloud-code-note'>
+                {t('Replace the placeholders with your gateway settings.')}
+              </p>
+            </div>
+            <div className='cloud-code'>
+              <div className='cloud-code-toolbar'>
+                <span translate='no'>Python / OpenAI SDK</span>
+                <CopyButton
+                  value={code}
+                  aria-label={t('Copy quickstart code')}
+                />
+              </div>
+              <pre tabIndex={0} aria-label={t('Python quickstart example')}>
+                <code translate='no'>{code}</code>
+              </pre>
+            </div>
+          </div>
+        </section>
+        <section
+          className='cloud-container cloud-closing'
+          aria-labelledby='closing-heading'
+        >
+          <div>
+            <h2 id='closing-heading'>{t('Your next project, connected.')}</h2>
+            <p>{t('An AI platform by Yunsuguan')}</p>
+          </div>
+          <Button
+            role='link'
+            className='cloud-primary'
+            size='lg'
+            render={
+              <Link to={props.isAuthenticated ? '/dashboard' : '/sign-up'} />
+            }
+          >
+            {props.isAuthenticated
+              ? t('Go to Dashboard')
+              : t('Create an account')}
+          </Button>
+        </section>
+      </main>
+      <footer className='cloud-footer'>
+        <div className='cloud-container'>
+          <div className='cloud-footer-brand'>
+            <a href='https://www.yunsuguan.com/'>
+              <img
+                src='/yunsuguan-logo.png'
+                alt={t('Yunsuguan')}
+                width={180}
+                height={53}
+                loading='lazy'
+              />
+            </a>
+            <p>{t('An AI platform by Yunsuguan')}</p>
+            <div>
+              <Link to='/pricing'>{t('Explore models')}</Link>
+              <a href='https://www.yunsuguan.com/'>{t('Visit Yunsuguan')}</a>
+            </div>
+          </div>
+          <p className='cloud-attribution'>
+            Frontend design and development by{' '}
+            <a
+              href='https://github.com/QuantumNous/new-api'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              New API contributors.
+            </a>
+          </p>
+        </div>
+      </footer>
+    </>
   )
 }
