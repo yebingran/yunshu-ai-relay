@@ -1,0 +1,94 @@
+name: yunsuguanai
+
+services:
+  app:
+    image: ghcr.io/yebingran/yunsuguanai:${IMAGE_TAG:-latest}
+    container_name: yunsuguanai-app
+    restart: unless-stopped
+    command: ["--log-dir", "/app/logs"]
+    expose:
+      - "3000"
+    environment:
+      TZ: Asia/Shanghai
+      DEFAULT_LANGUAGE: zh-CN
+      SQL_DSN: postgres://yunsuguan:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/yunsuguanai?sslmode=disable
+      REDIS_CONN_STRING: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379/0
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
+      SESSION_COOKIE_SECURE: "true"
+      SESSION_COOKIE_TRUSTED_URL: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN to your exact HTTPS origin}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:?Set TRUSTED_PROXIES to the 1Panel proxy network CIDR}
+      ERROR_LOG_ENABLED: "true"
+      BATCH_UPDATE_ENABLED: "true"
+      NODE_NAME: yunsuguanai-1
+    volumes:
+      - ${DATA_ROOT:-/opt/yunsuguanai}/app-data:/data
+      - ${DATA_ROOT:-/opt/yunsuguanai}/logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/status | grep -Eq '\"success\"[[:space:]]*:[[:space:]]*true'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yunsuguanai
+      POSTGRES_USER: yunsuguan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - ${DATA_ROOT:-/opt/yunsuguanai}/postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yunsuguan -d yunsuguanai"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+    command: ["/bin/sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - ${DATA_ROOT:-/opt/yunsuguanai}/redis:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  backend:
+    internal: true
+  proxy:
+    external: true
+    name: ${ONEPANEL_NETWORK:-1panel-network}
