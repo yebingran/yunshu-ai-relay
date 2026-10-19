@@ -1,0 +1,22 @@
+name: Export private source history
+on:
+  push:
+    branches: [codex/export-history]
+    paths: [.github/workflows/export-history.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+      - name: Bundle repository history for local synchronization
+        run: git bundle create /tmp/yunshu-history.bundle --all
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: yunshu-source-history
+          path: /tmp/yunshu-history.bundle
+          retention-days: 3
