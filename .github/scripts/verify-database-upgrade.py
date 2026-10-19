@@ -9,7 +9,7 @@ import tempfile
 import time
 import urllib.request
 
-BINARY = '/tmp/yunshu-api'
+NEW_IMAGE = os.environ['NEW_IMAGE']
 OLD_IMAGE = 'ghcr.io/yebingran/yunsuguanai:sha-c4e820cd1a21a20f6b6d56065b2a4d324f1f306a'
 PORT = 13991
 
@@ -30,18 +30,14 @@ def sql(dialect, database, statement):
 def start_and_stop(environment, directory, label, old=False):
     log_path = directory / (label + '.log')
     with log_path.open('w') as log:
-        if old:
-            name = 'yunshu-upgrade-baseline'
-            command = ['docker', 'run', '--rm', '--name', name, '--network', 'host',
-                       '-v', f'{directory}:/data']
-            for key in ['SESSION_SECRET', 'SQL_DSN', 'LOG_SQL_DSN', 'CHANNEL_UPSTREAM_MODEL_UPDATE_TASK_ENABLED']:
-                if key in environment:
-                    command += ['-e', f'{key}={environment[key]}']
-            command += [OLD_IMAGE, '--port', str(PORT)]
-            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
-        else:
-            process = subprocess.Popen([BINARY, '--port', str(PORT)], cwd=directory, env=environment,
-                                       stdout=log, stderr=subprocess.STDOUT)
+        name = 'yunshu-database-verification'
+        command = ['docker', 'run', '--rm', '--name', name, '--network', 'host',
+                   '-v', f'{directory}:/data']
+        for key in ['SESSION_SECRET', 'SQL_DSN', 'LOG_SQL_DSN', 'CHANNEL_UPSTREAM_MODEL_UPDATE_TASK_ENABLED']:
+            if key in environment:
+                command += ['-e', f'{key}={environment[key]}']
+        command += [OLD_IMAGE if old else NEW_IMAGE, '--port', str(PORT)]
+        process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
         try:
             deadline = time.monotonic() + 120
             while time.monotonic() < deadline:
@@ -60,15 +56,15 @@ def start_and_stop(environment, directory, label, old=False):
             print(log_path.read_text(), flush=True)
             raise
         finally:
-            if old:
-                subprocess.run(['docker', 'stop', '--time', '20', name], check=False, stdout=subprocess.DEVNULL)
-            else:
-                process.terminate()
+            subprocess.run(['docker', 'stop', '--time', '20', name], check=False, stdout=subprocess.DEVNULL)
             try:
                 process.wait(timeout=30)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+            # Both images run as root; allow the CI fixture to read/write the
+            # stopped container's disposable database and SQLite sidecar files.
+            subprocess.run(['sudo', 'chown', '-R', f'{os.getuid()}:{os.getgid()}', str(directory)], check=True)
 
 
 subprocess.run(['docker', 'pull', OLD_IMAGE], check=True)

@@ -68,11 +68,6 @@ jobs:
         run: |
           make test
           go test ./model -run 'Test(AuditLogSortIndex|ChannelPriority)DatabaseMatrix' -count=1 -v
-      - name: Verify fresh databases and upgrades from deployed version
-        env:
-          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
-          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-        run: python3 .github/scripts/verify-database-upgrade.py
 
   frontend:
     name: Frontend verification
@@ -195,9 +190,52 @@ jobs:
           fi
           docker rm --force yunsuguanai-smoke 2>/dev/null || true
 
+  database-upgrade:
+    name: Verify image database startup and upgrade
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    services:
+      mysql:
+        image: mysql:5.7.44
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: yunshu_tests
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only-password"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+      postgres:
+        image: postgres:9.6.24
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: yunshu_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull candidate image
+        run: docker pull "$IMAGE:sha-$GITHUB_SHA-amd64"
+      - name: Verify fresh databases and upgrades from deployed version
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+          NEW_IMAGE: ghcr.io/yebingran/yunshu-ai-relay:sha-${{ github.sha }}-amd64
+        run: python3 .github/scripts/verify-database-upgrade.py
+
   publish:
     name: Publish multi-architecture image
-    needs: build
+    needs: database-upgrade
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
