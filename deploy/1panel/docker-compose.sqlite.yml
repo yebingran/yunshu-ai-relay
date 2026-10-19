@@ -1,0 +1,15 @@
+services:
+  app:
+    image: ghcr.io/yebingran/yunshu-ai-relay:${IMAGE_TAG:-latest}
+    container_name: yunsuguanai
+    restart: unless-stopped
+    command: ["--log-dir", "/app/logs"]
+    environment:
+      TZ: Asia/Shanghai
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET; keep existing value when upgrading}
+      CHANNEL_UPSTREAM_MODEL_UPDATE_TASK_ENABLED: "false"
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    ports:
+      - "3300:3000"

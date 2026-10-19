@@ -1,10 +1,18 @@
+# 云枢 AI · 1Panel 部署
+
+已有 SQLite 站点升级：停容器备份完整数据目录，保留原有挂载路径、端口、SESSION_SECRET 与代理配置，只替换镜像地址。不要用空 data 目录覆盖业务数据，也不要把 PostgreSQL 编排直接套用到 SQLite 站点。
+
+简易编排见 [docker-compose.sqlite.yml](./docker-compose.sqlite.yml)，端口映射为 `3300:3000`。新镜像默认私有，先在 1Panel 添加 `ghcr.io` 镜像仓库认证（GitHub 用户名与具有 `read:packages` 权限的令牌），再拉取镜像。
+
+下面保留完整 PostgreSQL + Redis 的部署参考。
+
 # 云速管 AI 平台：1Panel 部署与更新
 
 此方案将应用、PostgreSQL 和 Redis 作为一个独立编排管理；使用 1Panel 已有的 OpenResty 提供域名、HTTPS 与反向代理。编排默认不向宿主机发布应用和数据库端口。
 
 ## 1. 镜像与准备工作
 
-镜像：`ghcr.io/yebingran/yunsuguanai:latest`，以及 `sha-<完整 Git 提交 SHA>` 版本标签。支持 AMD64 与 ARM64；先在仓库 Actions 中确认相应构建成功。首次发布的 GHCR 软件包可能默认为私有，可在包设置中改为 Public，或在 1Panel 的容器镜像仓库中配置有 `read:packages` 权限的认证。不要把仓库令牌写进 Compose 或提交到 Git。
+镜像：`ghcr.io/yebingran/yunshu-ai-relay:latest`，以及 `sha-<完整 Git 提交 SHA>` 版本标签。支持 AMD64 与 ARM64；先在仓库 Actions 中确认相应构建成功。首次发布的 GHCR 软件包可能默认为私有，可在包设置中改为 Public，或在 1Panel 的容器镜像仓库中配置有 `read:packages` 权限的认证。不要把仓库令牌写进 Compose 或提交到 Git。
 
 先准备：
 

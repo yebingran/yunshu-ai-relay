@@ -25,16 +25,21 @@ import {
 } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it } from 'vitest'
+
+import { useAuthStore } from '@/stores/auth-store'
 
 import { PublicHeader } from '../public-header'
 
-it('exposes menu state and keeps closed mobile navigation inert', async () => {
+afterEach(() => useAuthStore.getState().auth.reset())
+
+it('keeps admin versions off the public header and supports the mobile menu', async () => {
   const user = userEvent.setup()
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  client.setQueryData(['status'], {})
+  client.setQueryData(['status'], { version: 'yunshu-ai-relay-test' })
+  useAuthStore.getState().auth.setUser({ id: 1, username: 'admin', role: 100 })
   client.setQueryData(['notice'], { success: true, data: '' })
   const route = createRootRoute({
     component: () => (
@@ -72,6 +77,8 @@ it('exposes menu state and keeps closed mobile navigation inert', async () => {
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
   expect(menu).toHaveAttribute('inert')
   expect(screen.getByRole('img', { name: 'Yunsuguan' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: /System updates, current version/ })).not.toBeInTheDocument()
+  expect(screen.queryByText('yunshu-ai-relay-test')).not.toBeInTheDocument()
   toggle.focus()
   await user.keyboard('{Enter}')
   expect(toggle).toHaveAttribute('aria-expanded', 'true')

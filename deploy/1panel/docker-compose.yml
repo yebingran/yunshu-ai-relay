@@ -2,7 +2,7 @@ name: yunsuguanai
 
 services:
   app:
-    image: ghcr.io/yebingran/yunsuguanai:${IMAGE_TAG:-latest}
+    image: ghcr.io/yebingran/yunshu-ai-relay:${IMAGE_TAG:-latest}
     container_name: yunsuguanai-app
     restart: unless-stopped
     command: ["--log-dir", "/app/logs"]

@@ -1,3 +1,5 @@
+> 云枢 AI · Yunshu AI Relay 定制仓库。演示：https://ai.yunsuguan.com/ 。本文件保留上游技术参考；定制版镜像与部署以 [主 README](./README.md) 为准。
+
 <div align="center">
 
 ![new-api](/web/public/logo.png)
@@ -96,40 +98,19 @@ Accounts, channels, plugin installation states, usage, prices, and costs shown b
 
 ---
 
-## 🤝 Trusted Partners
+## 赞助与生态伙伴
 
-<p align="center">
-  <em>No particular order</em>
-</p>
+### 翼龙云 · 国际云服务
 
-<p align="center">
-  <a href="https://www.cherry-ai.com/" target="_blank">
-    <img src="./docs/images/cherry-studio.png" alt="Cherry Studio" height="80" />
-  </a>
-  <a href="https://bda.pku.edu.cn/" target="_blank">
-    <img src="./docs/images/pku.png" alt="Peking University" height="80" />
-  </a>
-  <a href="https://www.aliyun.com/" target="_blank">
-    <img src="./docs/images/aliyun.png" alt="Alibaba Cloud" height="80" />
-  </a>
-  <a href="https://io.net/" target="_blank">
-    <img src="./docs/images/io-net.png" alt="IO.NET" height="80" />
-  </a>
-</p>
+由 [翼龙云 · www.yilongcloud.com](https://www.yilongcloud.com/) 提供赞助。提供阿里云国际、腾讯云国际、AWS、Microsoft Azure、Google Cloud 等国际云厂商账号及配套服务，支持代充值与云资源采购咨询，协助团队管理多云资源。具体服务范围与条件以翼龙云官网为准。
 
----
+### 云速管 · 自研云账号管理平台
 
-## 🙏 Special Thanks
+[云速管 · www.yunsuguan.com](https://www.yunsuguan.com/) 是自研云账号管理平台，围绕多云账号、客户协作、资源与费用管理，帮助团队集中处理日常云业务。
 
-<p align="center">
-  <a href="https://www.jetbrains.com/?from=new-api" target="_blank">
-    <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo" width="120" />
-  </a>
-</p>
+### 翼镜 AI · 无限画布
 
-<p align="center">
-  <strong>Thanks to <a href="https://www.jetbrains.com/?from=new-api">JetBrains</a> for providing free open-source development license for this project</strong>
-</p>
+[翼镜 AI · wuxian.yunsuguan.com](https://wuxian.yunsuguan.com/) 提供可自部署的 AI 无限画布，接入 MiniMax H3 视频生成能力，主打低成本视频创作与可视化工作流。模型可用性、部署方式及实际价格以站内说明为准。
 
 ---
 
