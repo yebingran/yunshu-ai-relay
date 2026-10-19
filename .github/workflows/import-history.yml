@@ -1,32 +1,10 @@
-name: Apply verified customization and official update
+name: Private migration history
 on:
-  push:
-    paths: [.github/workflows/import-history.yml]
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
-  sync:
+  info:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          fetch-depth: 0
-      - name: Merge pinned official update with resolved customization
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git fetch https://github.com/QuantumNous/new-api.git 32e587406c6ebe891f18ab9aeb2f4a1f6b7b9e14
-          upstream_commit=$(git rev-parse FETCH_HEAD)
-          test "$upstream_commit" = '32e587406c6ebe891f18ab9aeb2f4a1f6b7b9e14'
-          python3 - <<'PY'
-          import base64, gzip, pathlib
-          patch = pathlib.Path('.github/migration/source.patch.gz.b64').read_text()
-          pathlib.Path('/tmp/yunshu-source.patch').write_bytes(gzip.decompress(base64.b64decode(patch)))
-          PY
-          git apply --index /tmp/yunshu-source.patch
-          git rm .github/migration/source.patch.gz.b64
-          tree=$(git write-tree)
-          commit=$(printf 'Merge official 32e587406c6e into Yunshu AI Relay\n\nPreserve Yunsuguan customization, sponsor documentation and public-header changes.\n' | git commit-tree "$tree" -p HEAD -p "$upstream_commit")
-          git reset --hard "$commit"
-          git push origin HEAD:main HEAD:refs/heads/codex/yunshu-ai-relay
+      - run: echo 'Migration completed. Use publish-yunshu.yml to verify and build images.'

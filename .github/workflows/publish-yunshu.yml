@@ -1,6 +1,8 @@
 name: Verify and publish Yunshu AI Relay
 
 on:
+  push:
+    branches: [main, codex/yunshu-ai-relay]
   workflow_dispatch:
 
 permissions:

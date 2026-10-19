@@ -77,7 +77,9 @@ it('keeps admin versions off the public header and supports the mobile menu', as
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
   expect(menu).toHaveAttribute('inert')
   expect(screen.getByRole('img', { name: 'Yunsuguan' })).toBeVisible()
-  expect(screen.queryByRole('button', { name: /System updates, current version/ })).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: /System updates, current version/ })
+  ).not.toBeInTheDocument()
   expect(screen.queryByText('yunshu-ai-relay-test')).not.toBeInTheDocument()
   toggle.focus()
   await user.keyboard('{Enter}')
