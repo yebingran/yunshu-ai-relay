@@ -60,7 +60,7 @@ jobs:
           run = json.load(open('/tmp/candidate-run.json'))
           assert run['head_sha'] == os.environ['CANDIDATE_SHA']
           jobs = json.load(open('/tmp/candidate-jobs.json'))['jobs']
-          required = {'Backend and database verification', 'Frontend verification', 'Build and verify AMD64', 'Build and verify ARM64'}
+          required = {'Backend and database verification', 'Frontend verification', 'Build and verify (amd64)', 'Build and verify (arm64)'}
           passed = {job['name'] for job in jobs if job['conclusion'] == 'success'}
           assert required <= passed, required - passed
           print('Candidate production source matches; backend, frontend and both image builds passed')
