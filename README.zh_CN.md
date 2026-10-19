@@ -56,7 +56,7 @@ ghcr.io/yebingran/yunshu-ai-relay:sha-<完整 Git 提交 SHA>
 
 镜像由 GitHub Actions 构建，支持 `linux/amd64` 和 `linux/arm64`。请先确认对应构建成功；公开镜像可直接拉取，私有镜像需配置仓库认证。生产环境建议使用版本标签，并记录当前部署版本。
 
-编排默认通过容器网络让 OpenResty 访问应用，不发布应用、数据库或 Redis 的宿主机端口。网站对外使用 HTTPS；具体配置见部署指南。
+SQLite 简易编排使用 `3300:3000` 端口映射；完整 PostgreSQL + Redis 编排通过容器网络让 OpenResty 访问应用，不发布宿主机端口。网站对外使用 HTTPS；具体配置见部署指南。
 
 ## 本地修改与发布
 

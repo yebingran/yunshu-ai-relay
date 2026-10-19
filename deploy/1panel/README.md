@@ -12,7 +12,7 @@
 
 ## 1. 镜像与准备工作
 
-镜像：`ghcr.io/yebingran/yunshu-ai-relay:latest`，以及 `sha-<完整 Git 提交 SHA>` 版本标签。支持 AMD64 与 ARM64；先在仓库 Actions 中确认相应构建成功。首次发布的 GHCR 软件包可能默认为私有，可在包设置中改为 Public，或在 1Panel 的容器镜像仓库中配置有 `read:packages` 权限的认证。不要把仓库令牌写进 Compose 或提交到 Git。
+镜像：`ghcr.io/yebingran/yunshu-ai-relay:latest`，以及 `sha-<完整 Git 提交 SHA>` 版本标签。支持 AMD64 与 ARM64；先在仓库 Actions 中确认相应构建成功。镜像保持私有，在 1Panel 的容器镜像仓库中配置有 `read:packages` 权限的 GitHub 认证。不要把仓库令牌写进 Compose 或提交到 Git。
 
 先准备：
 
@@ -190,7 +190,7 @@ docker compose --env-file .env -f docker-compose.yml exec -T postgres \
 ## 9. 常见问题
 
 - **镜像不存在 / manifest unknown**：确认云速管镜像工作流成功，标签拼写与完整提交 SHA 一致。
-- **unauthorized / denied**：GHCR 包可能仍为私有。改为 Public 或给 1Panel 配置只读镜像凭证。
+- **unauthorized / denied**：本项目镜像私有，给 1Panel 配置有 `read:packages` 权限的只读镜像凭证，并确认该 GitHub 账号可以访问本仓库。
 - **502**：核对 `yunsuguanai-app` 健康状态、容器网络和 OpenResty 代理地址。
 - **登录刷新被拒绝 / 登录状态丢失**：核对 HTTPS、代理来源头、`PUBLIC_ORIGIN` 与实际浏览器来源。
 - **流式输出一段时间后中断**：核对 OpenResty 与 CDN 超时、缓冲和上游服务超时。

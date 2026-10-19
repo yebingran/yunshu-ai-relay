@@ -82,7 +82,8 @@ for dialect in ['sqlite', 'mysql', 'postgres']:
             database = f'yunshu_{dialect}_{mode}'
             log_database = database + '_logs'
             for name in [database, log_database]:
-                sql(dialect, 'mysql' if dialect == 'mysql' else 'postgres', f'CREATE DATABASE {name}')
+                charset = ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci' if dialect == 'mysql' else ''
+                sql(dialect, 'mysql' if dialect == 'mysql' else 'postgres', f'CREATE DATABASE {name}{charset}')
             if dialect == 'mysql':
                 template = 'root:ci-only-password@tcp(127.0.0.1:3306)/{}?charset=utf8mb4&parseTime=True&loc=Local'
             else:
