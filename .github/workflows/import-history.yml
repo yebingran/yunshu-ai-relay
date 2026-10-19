@@ -21,3 +21,5 @@ jobs:
           git fetch https://github.com/yebingran/yunsuguanai.git main
           git merge --allow-unrelated-histories --no-edit FETCH_HEAD
           git push origin HEAD:main
+
+# Workflow files are seeded before the history import.
