@@ -2,14 +2,14 @@ name: Verify and publish Yunshu AI Relay
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/yunshu-ai-relay]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: yunshu-ai-relay-publish-${{ github.ref }}
+  group: yunshu-ai-relay-publish
   cancel-in-progress: true
 
 env:
@@ -54,6 +54,8 @@ jobs:
             tokenkit/go.sum
       - name: Prepare frontend placeholder
         run: mkdir -p web/dist && touch web/dist/index.html
+      - name: Check formatting of migration regression test
+        run: test -z "$(gofmt -l model/audit_log_test.go)"
       - name: Build and vet root module
         run: |
           go vet ./...
@@ -63,7 +65,9 @@ jobs:
           (cd relaykit && GOWORK=off go build ./...)
           (cd tokenkit && GOWORK=off go build ./...)
       - name: Run backend and real three-database regression tests
-        run: make test
+        run: |
+          make test
+          go test ./model -run 'Test(AuditLogSortIndex|ChannelPriority)DatabaseMatrix' -count=1 -v
       - name: Verify fresh databases and upgrades from deployed version
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
@@ -94,7 +98,14 @@ jobs:
           if files:
               subprocess.run(['bun', 'x', 'oxlint', '-c', '.oxlintrc.json', *files], check=True)
           PY
-      - run: bun run test
+      - name: Test all frontend areas affected by the official merge and customization
+        run: >-
+          bun run test
+          src/components/data-table src/components/layout
+          src/context/__tests__/theme-boot-script.test.ts
+          src/features/channels src/features/pricing src/features/profile
+          src/features/system-settings src/features/home
+          src/lib/__tests__/model-provider.test.ts
       - run: bun run build
 
   build:

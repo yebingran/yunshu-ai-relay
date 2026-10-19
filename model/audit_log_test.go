@@ -95,7 +95,19 @@ func TestAuditLogSortIndexDatabaseMatrix(t *testing.T) {
 					}
 					index, ok := byName["idx_audit_time_event"]
 					require.True(t, ok, "migration must create the audit ordering index")
-					assert.Equal(t, []string{"created_at", "event_id"}, index.Columns())
+					columns := index.Columns()
+					if dialect == "postgres" {
+						// GORM's PostgreSQL index introspection can return table-column
+						// order instead of index-key order. Verify the physical index.
+						columns = nil
+						require.NoError(t, db.Raw(`
+							SELECT pg_get_indexdef(indexrelid, column_number, true)
+							FROM pg_index
+							CROSS JOIN LATERAL generate_series(1, indnatts) AS column_number
+							WHERE indexrelid = to_regclass(?)
+							ORDER BY column_number`, "idx_audit_time_event").Scan(&columns).Error)
+					}
+					assert.Equal(t, []string{"created_at", "event_id"}, columns)
 					for _, original := range originalIndexes {
 						preserved, ok := byName[original.Name()]
 						require.True(t, ok, "existing index %s must remain", original.Name())
