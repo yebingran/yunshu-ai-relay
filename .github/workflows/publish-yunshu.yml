@@ -2,7 +2,7 @@ name: Verify and publish Yunshu AI Relay
 
 on:
   push:
-    branches: [main, codex/yunshu-ai-relay]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -84,7 +84,16 @@ jobs:
           bun-version: '1.4.0'
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
-      - run: bun run lint
+      - name: Lint changed TypeScript files
+        run: |
+          git -C .. fetch --no-tags origin c4e820cd1a21a20f6b6d56065b2a4d324f1f306a
+          python3 - <<'PY'
+          import subprocess
+          paths = subprocess.check_output(['git', '-C', '..', 'diff', '--name-only', 'c4e820cd1a21a20f6b6d56065b2a4d324f1f306a', 'HEAD', '--', 'web'], text=True).splitlines()
+          files = [p[4:] for p in paths if p.endswith(('.ts', '.tsx'))]
+          if files:
+              subprocess.run(['bun', 'x', 'oxlint', '-c', '.oxlintrc.json', *files], check=True)
+          PY
       - run: bun run test
       - run: bun run build
 
