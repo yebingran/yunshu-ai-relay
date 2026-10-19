@@ -1,0 +1,207 @@
+name: Verify and publish Yunshu AI Relay
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yunshu-ai-relay-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/yebingran/yunshu-ai-relay
+
+jobs:
+  backend:
+    name: Backend and database verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GOWORK: 'off'
+      TEST_MYSQL_DSN: root:ci-only-password@tcp(127.0.0.1:3306)/yunshu_tests?charset=utf8mb4&parseTime=True&loc=Local
+      TEST_POSTGRES_DSN: postgres://postgres:ci-only-password@127.0.0.1:5432/yunshu_tests?sslmode=disable
+    services:
+      mysql:
+        image: mysql:5.7.44
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: yunshu_tests
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only-password"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+      postgres:
+        image: postgres:9.6.24
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: yunshu_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            relaykit/go.sum
+            tokenkit/go.sum
+      - name: Prepare frontend placeholder
+        run: mkdir -p web/dist && touch web/dist/index.html
+      - name: Build and vet root module
+        run: |
+          go vet ./...
+          CGO_ENABLED=0 go build -o /tmp/yunshu-api .
+      - name: Build independent modules
+        run: |
+          (cd relaykit && GOWORK=off go build ./...)
+          (cd tokenkit && GOWORK=off go build ./...)
+      - name: Run backend and real three-database regression tests
+        run: make test
+      - name: Verify fresh databases and upgrades from deployed version
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: python3 .github/scripts/verify-database-upgrade.py
+
+  frontend:
+    name: Frontend verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.0'
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run test
+      - run: bun run build
+
+  build:
+    needs: [backend, frontend]
+    if: github.repository == 'yebingran/yunshu-ai-relay'
+    name: Build and verify (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+            platform: linux/amd64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Validate 1Panel deployment template
+        env:
+          POSTGRES_PASSWORD: "11111111111111111111111111111111"
+          REDIS_PASSWORD: "22222222222222222222222222222222"
+          SESSION_SECRET: "33333333333333333333333333333333"
+          PUBLIC_ORIGIN: https://ai.example.com
+          TRUSTED_PROXIES: 172.18.0.0/16
+        run: |
+          docker compose -f deploy/1panel/docker-compose.yml config --quiet
+          docker compose -f deploy/1panel/docker-compose.sqlite.yml config --quiet
+      - name: Write build version
+        run: printf 'yunshu-ai-relay-%s\n' "${GITHUB_SHA:0:12}" > VERSION
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+      - name: Log in to GHCR
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image for verification
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: ${{ env.IMAGE }}:sha-${{ github.sha }}-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.title=Yunshu AI Relay
+            org.opencontainers.image.description=AI platform by Yunsuguan; derived from QuantumNous/new-api
+            org.opencontainers.image.source=https://github.com/yebingran/yunshu-ai-relay
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=AGPL-3.0-only
+          cache-from: type=gha,scope=yunshu-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=yunshu-${{ matrix.arch }}
+      - name: Verify startup and bundled Yunsuguan frontend
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          export SESSION_SECRET="$(openssl rand -hex 32)"
+          docker run --detach --name yunsuguanai-smoke \
+            --publish 127.0.0.1:13000:3000 \
+            --env SESSION_SECRET \
+            --env DEFAULT_LANGUAGE=zh-CN \
+            "$IMAGE:sha-$GITHUB_SHA-$ARCH"
+          curl --fail --silent --show-error --retry 40 --retry-all-errors \
+            --retry-delay 2 --retry-max-time 120 --max-time 5 \
+            http://127.0.0.1:13000/api/status > /tmp/yunsuguanai-status.json
+          python3 -c 'import json; assert json.load(open("/tmp/yunsuguanai-status.json"))["success"] is True'
+          curl --fail --silent --show-error http://127.0.0.1:13000/yunsuguan-logo.png \
+            --output /tmp/yunsuguanai-logo.png
+          cmp web/public/yunsuguan-logo.png /tmp/yunsuguanai-logo.png
+          docker exec yunsuguanai-smoke test -f /licenses/NOTICE
+      - name: Push verified architecture image
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: docker push "$IMAGE:sha-$GITHUB_SHA-$ARCH"
+      - name: Clean up smoke container
+        if: always()
+        run: |
+          if [ '${{ job.status }}' != 'success' ]; then
+            docker logs --tail 150 yunsuguanai-smoke 2>&1 || true
+          fi
+          docker rm --force yunsuguanai-smoke 2>/dev/null || true
+
+  publish:
+    name: Publish multi-architecture image
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: write
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+      - name: Log in to GHCR
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish versioned and latest manifests
+        run: |
+          docker buildx imagetools create \
+            --tag "$IMAGE:sha-$GITHUB_SHA" \
+            --tag "$IMAGE:latest" \
+            "$IMAGE:sha-$GITHUB_SHA-amd64" \
+            "$IMAGE:sha-$GITHUB_SHA-arm64"
+          docker buildx imagetools inspect "$IMAGE:sha-$GITHUB_SHA"
+          {
+            echo '## Yunsuguan AI image'
+            echo "- Version: \`$IMAGE:sha-$GITHUB_SHA\`"
+            echo "- Latest: \`$IMAGE:latest\`"
+            echo '- Architectures: linux/amd64 and linux/arm64'
+            echo '- Container HTTP port: 3000/tcp'
+            echo '- 1Panel deployment instructions: deploy/1panel/README.md'
+          } >> "$GITHUB_STEP_SUMMARY"
