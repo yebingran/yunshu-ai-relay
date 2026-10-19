@@ -1,0 +1,113 @@
+name: Verify and publish prepared Yunshu candidate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/verify-yunshu-release]
+    paths:
+      - '.github/workflows/verify-yunshu-release.yml'
+      - '.github/scripts/verify-database-upgrade.py'
+
+concurrency:
+  group: yunshu-prepared-candidate
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/yebingran/yunshu-ai-relay
+  CANDIDATE_SHA: 4ae8122a7b4a112cadb664d52f90a7be19c3d90d
+
+jobs:
+  database-upgrade:
+    name: Verify image database startup and upgrade
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    services:
+      mysql:
+        image: mysql:5.7.44
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: yunshu_tests
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only-password"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+      postgres:
+        image: postgres:9.6.24
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: yunshu_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+      - name: Confirm candidate source and completed checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git diff --exit-code "$CANDIDATE_SHA" HEAD -- . ':!.github'
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/39260133188" > /tmp/candidate-run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/39260133188/jobs?per_page=100" > /tmp/candidate-jobs.json
+          python3 - <<'PY'
+          import json, os
+          run = json.load(open('/tmp/candidate-run.json'))
+          assert run['head_sha'] == os.environ['CANDIDATE_SHA']
+          jobs = json.load(open('/tmp/candidate-jobs.json'))['jobs']
+          required = {'Backend and database verification', 'Frontend verification', 'Build and verify AMD64', 'Build and verify ARM64'}
+          passed = {job['name'] for job in jobs if job['conclusion'] == 'success'}
+          assert required <= passed, required - passed
+          print('Candidate production source matches; backend, frontend and both image builds passed')
+          PY
+      - uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull candidate image
+        run: docker pull "$IMAGE:sha-$CANDIDATE_SHA-amd64"
+      - name: Verify fresh databases and upgrades from deployed version
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+          NEW_IMAGE: ghcr.io/yebingran/yunshu-ai-relay:sha-${{ env.CANDIDATE_SHA }}-amd64
+        run: python3 .github/scripts/verify-database-upgrade.py
+
+  publish:
+    name: Publish multi-architecture image
+    needs: database-upgrade
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: write
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+      - name: Log in to GHCR
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish versioned and latest manifests
+        run: |
+          docker buildx imagetools create \
+            --tag "$IMAGE:sha-$CANDIDATE_SHA" \
+            --tag "$IMAGE:latest" \
+            "$IMAGE:sha-$CANDIDATE_SHA-amd64" \
+            "$IMAGE:sha-$CANDIDATE_SHA-arm64"
+          docker buildx imagetools inspect "$IMAGE:sha-$CANDIDATE_SHA"
+          {
+            echo '## Yunsuguan AI image'
+            echo "- Version: \`$IMAGE:sha-$CANDIDATE_SHA\`"
+            echo "- Latest: \`$IMAGE:latest\`"
+            echo '- Architectures: linux/amd64 and linux/arm64'
+            echo '- Container HTTP port: 3000/tcp'
+            echo '- 1Panel deployment instructions: deploy/1panel/README.md'
+          } >> "$GITHUB_STEP_SUMMARY"
