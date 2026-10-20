@@ -21,7 +21,7 @@ For commercial licensing, please contact support@quantumnous.com
  */
 
 // System Configuration Defaults
-export const DEFAULT_SYSTEM_NAME = '云速管'
+export const DEFAULT_SYSTEM_NAME = '云枢 AI'
 export const DEFAULT_LOGO = '/yunsuguan-logo.png'
 
 // LocalStorage Keys

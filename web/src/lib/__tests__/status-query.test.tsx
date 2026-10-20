@@ -264,14 +264,15 @@ describe('module guard status freshness', () => {
   )
 })
 
-test('maps the default upstream name to Yunsuguan while preserving custom site names', async () => {
-  stubStatusEndpoint('New API')
-  await ensureStatus(createQueryClient())
-  expect(useSystemConfigStore.getState().config.systemName).toBe('云速管')
-
-  stubStatusEndpoint('Team Workspace')
-  await ensureStatus(createQueryClient())
-  expect(useSystemConfigStore.getState().config.systemName).toBe(
-    'Team Workspace'
-  )
-})
+test.each([
+  ['New API', '云枢 AI'],
+  ['云速管', '云枢 AI'],
+  ['Team Workspace', 'Team Workspace'],
+])(
+  'displays status name %s as %s while preserving custom names',
+  async (name, expected) => {
+    stubStatusEndpoint(name)
+    await ensureStatus(createQueryClient())
+    expect(useSystemConfigStore.getState().config.systemName).toBe(expected)
+  }
+)

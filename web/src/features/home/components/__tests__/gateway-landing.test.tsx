@@ -92,6 +92,9 @@ describe('Gateway landing actions', () => {
     await i18next.changeLanguage('zh')
     await renderLanding(false)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      '云枢 AI'
+    )
+    expect(screen.getByText(/让 AI 融入/)).toHaveTextContent(
       '让 AI 融入你的日常工作。'
     )
     expect(screen.getByRole('button', { name: '复制接入示例' })).toBeVisible()
@@ -132,8 +135,17 @@ describe('Gateway landing actions', () => {
     ).toBeVisible()
   })
 
-  it('uses Yunsuguan branding and confines the required upstream attribution to the footer', async () => {
+  it('identifies Yunshu AI in the hero and footer while retaining its parent brand and attribution', async () => {
     await renderLanding(false)
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Yunshu AI' })
+    ).toBeVisible()
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('Yunshu AI')
+    expect(
+      screen.getByRole('heading', {
+        name: 'Build your next project with Yunshu AI.',
+      })
+    ).toBeVisible()
     expect(screen.getAllByText('An AI platform by Yunsuguan')).toHaveLength(3)
     expect(screen.getByRole('main')).not.toHaveTextContent(/New API/i)
     expect(screen.getByRole('contentinfo')).toHaveTextContent(

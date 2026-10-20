@@ -14,9 +14,41 @@
     'PingFang SC', 'Microsoft YaHei', 'Public Sans Variable', sans-serif;
   -webkit-tap-highlight-color: #2457d622;
 }
-.cloud-home .cloud-brand-logo {
-  width: 132px;
-  height: auto;
+.cloud-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #172c4b;
+  text-align: left;
+}
+.cloud-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px 3px 10px 3px;
+  background: #2457d6;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+}
+.cloud-brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.cloud-brand-name {
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.cloud-brand-affiliation {
+  color: #576780;
+  font-size: 10px;
+  line-height: 1.4;
 }
 .cloud-home header {
   background: #fff;
@@ -26,8 +58,8 @@
   min-height: 72px;
 }
 .cloud-home header nav > div:first-child {
-  flex: 1 0 150px;
-  min-width: 150px;
+  flex: 1 0 190px;
+  min-width: 0;
 }
 .cloud-home header [data-slot='button'] {
   color: #fff;
@@ -104,12 +136,20 @@
   background: #2457d6;
 }
 .cloud-intro h1 {
-  font-size: clamp(42px, 4.3vw, 62px);
-  font-weight: 550;
-  letter-spacing: -0.045em;
-  line-height: 1.35;
-  color: #172c4b;
+  font-size: clamp(52px, 5.4vw, 78px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  color: #2457d6;
   margin: 0;
+}
+.cloud-tagline {
+  margin-top: 18px;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  color: #172c4b;
 }
 .cloud-description {
   font-size: 15px;
@@ -508,16 +548,16 @@
   width: 112px;
   height: auto;
 }
-.cloud-footer-brand > p {
-  font-size: 11px;
-  color: #5b6b83;
+.cloud-parent-logo {
+  padding-left: 24px;
+  border-left: 1px solid #dbe3ef;
 }
-.cloud-footer-brand > div {
+.cloud-footer-links {
   display: flex;
   gap: 25px;
   margin-left: auto;
 }
-.cloud-footer-brand a {
+.cloud-footer-links a {
   font-size: 11px;
   color: #50627f;
 }
@@ -559,7 +599,10 @@
     gap: 42px;
   }
   .cloud-intro h1 {
-    font-size: clamp(38px, 8vw, 54px);
+    font-size: clamp(48px, 11vw, 64px);
+  }
+  .cloud-tagline {
+    font-size: 25px;
   }
   .cloud-affiliation {
     margin-bottom: 23px;
@@ -616,7 +659,7 @@
   .cloud-footer-brand {
     gap: 18px;
   }
-  .cloud-footer-brand > div {
+  .cloud-footer-links {
     width: 100%;
     margin-left: 0;
   }
@@ -630,8 +673,21 @@
   .cloud-home .cloud-model-tabs {
     gap: 20px;
   }
-  .cloud-home .cloud-brand-logo {
-    width: 120px;
+  .cloud-home header nav > div:first-child {
+    flex-basis: 0;
+    min-width: 0;
+  }
+  .cloud-brand-name {
+    font-size: 19px;
+  }
+  .cloud-brand-affiliation {
+    font-size: 9px;
+  }
+  .cloud-parent-logo {
+    padding-left: 18px;
+  }
+  .cloud-footer-brand img {
+    width: 90px;
   }
 }
 @supports (padding: max(0px)) {

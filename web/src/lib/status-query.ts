@@ -93,7 +93,7 @@ export function mapStatusDataToConfig(
 
   return {
     systemName:
-      data.system_name === 'New API'
+      data.system_name === 'New API' || data.system_name === '云速管'
         ? DEFAULT_SYSTEM_NAME
         : (data.system_name as string | undefined) || DEFAULT_SYSTEM_NAME,
     logo:

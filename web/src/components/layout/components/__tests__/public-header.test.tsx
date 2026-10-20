@@ -27,6 +27,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it } from 'vitest'
 
+import { YunshuBrand } from '@/features/home/components/yunshu-brand'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { PublicHeader } from '../public-header'
@@ -48,14 +49,7 @@ it('keeps admin versions off the public header and supports the mobile menu', as
         showLanguageSwitcher={false}
         showNotifications={false}
         showAuthButtons={false}
-        brand={
-          <img
-            src='/yunsuguan-logo.png'
-            alt='Yunsuguan'
-            width={180}
-            height={53}
-          />
-        }
+        brand={<YunshuBrand />}
       />
     ),
   })
@@ -76,7 +70,9 @@ it('keeps admin versions off the public header and supports the mobile menu', as
   )
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
   expect(menu).toHaveAttribute('inert')
-  expect(screen.getByRole('img', { name: 'Yunsuguan' })).toBeVisible()
+  expect(
+    screen.getByRole('link', { name: 'Yunshu AI An AI platform by Yunsuguan' })
+  ).toHaveAttribute('href', '/')
   expect(
     screen.queryByRole('button', { name: /System updates, current version/ })
   ).not.toBeInTheDocument()

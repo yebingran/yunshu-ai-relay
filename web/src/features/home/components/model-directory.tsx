@@ -85,7 +85,7 @@ export function ModelDirectory() {
           </span>
           <h2 id='directory-title'>{t('Find your model')}</h2>
         </div>
-        <span className='cloud-directory-label'>AI</span>
+        <span className='cloud-directory-label'>{t('Yunshu AI')}</span>
       </div>
       <Tabs
         value={category}

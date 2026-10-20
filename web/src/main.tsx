@@ -73,7 +73,8 @@ if (!rootElement) {
   try {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
     const apply = (name: string) => {
-      const brandName = name === 'New API' ? DEFAULT_SYSTEM_NAME : name
+      const brandName =
+        name === 'New API' || name === '云速管' ? DEFAULT_SYSTEM_NAME : name
       document.title = brandName
       const metaTitle = document.querySelector(
         'meta[name="title"]'

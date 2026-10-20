@@ -26,6 +26,7 @@ import { isLikelyHtml } from '@/lib/content-format'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { GatewayLanding } from './components/gateway-landing'
+import { YunshuBrand } from './components/yunshu-brand'
 import { useHomePageContent } from './hooks'
 
 import '@/styles/gateway-home.css'
@@ -129,16 +130,7 @@ export function Home() {
         showNotifications={false}
         headerProps={{
           showLanguageSwitcher: false,
-          brand: (
-            <img
-              src='/yunsuguan-logo.png'
-              alt={t('Yunsuguan')}
-              width={180}
-              height={53}
-              fetchPriority='high'
-              className='cloud-brand-logo'
-            />
-          ),
+          brand: <YunshuBrand />,
         }}
       >
         <GatewayLanding isAuthenticated={isAuthenticated} />

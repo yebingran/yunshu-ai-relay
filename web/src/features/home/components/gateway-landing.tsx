@@ -23,6 +23,7 @@ import { CopyButton } from '@/components/copy-button'
 import { Button } from '@/components/ui/button'
 
 import { ModelDirectory } from './model-directory'
+import { YunshuBrand } from './yunshu-brand'
 
 const code = `from openai import OpenAI
 
@@ -54,14 +55,15 @@ export function GatewayLanding(props: { isAuthenticated: boolean }) {
             <p className='cloud-affiliation'>
               {t('An AI platform by Yunsuguan')}
             </p>
-            <h1 id='cloud-title'>
+            <h1 id='cloud-title'>{t('Yunshu AI')}</h1>
+            <p className='cloud-tagline'>
               {t('AI that fits')}
               <br />
               {t('the way you work.')}
-            </h1>
+            </p>
             <p className='cloud-description'>
               {t(
-                'Connect models, manage access and understand costs. Yunsuguan brings your AI services into one place, so your team can get on with the work.'
+                'Connect models, manage access and understand costs. Yunshu AI brings your AI services into one place, so your team can get on with the work.'
               )}
             </p>
             <div className='cloud-actions'>
@@ -202,7 +204,9 @@ export function GatewayLanding(props: { isAuthenticated: boolean }) {
           aria-labelledby='closing-heading'
         >
           <div>
-            <h2 id='closing-heading'>{t('Your next project, connected.')}</h2>
+            <h2 id='closing-heading'>
+              {t('Build your next project with Yunshu AI.')}
+            </h2>
             <p>{t('An AI platform by Yunsuguan')}</p>
           </div>
           <Button
@@ -222,7 +226,10 @@ export function GatewayLanding(props: { isAuthenticated: boolean }) {
       <footer className='cloud-footer'>
         <div className='cloud-container'>
           <div className='cloud-footer-brand'>
-            <a href='https://www.yunsuguan.com/'>
+            <Link to='/'>
+              <YunshuBrand />
+            </Link>
+            <a href='https://www.yunsuguan.com/' className='cloud-parent-logo'>
               <img
                 src='/yunsuguan-logo.png'
                 alt={t('Yunsuguan')}
@@ -231,8 +238,7 @@ export function GatewayLanding(props: { isAuthenticated: boolean }) {
                 loading='lazy'
               />
             </a>
-            <p>{t('An AI platform by Yunsuguan')}</p>
-            <div>
+            <div className='cloud-footer-links'>
               <Link to='/pricing'>{t('Explore models')}</Link>
               <a href='https://www.yunsuguan.com/'>{t('Visit Yunsuguan')}</a>
             </div>
